@@ -1,0 +1,28 @@
+name: productapp
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Adicione estas dependências para as funcionalidades do seu app:
+  dio: ^5.4.1                # Necessário para o HttpClient no seu RemoteDatasource
+  provider: ^6.1.1           # Recomendado para gerir a injeção de dependência do ViewModel
+  equatable: ^2.0.5          # Ajuda na comparação de estados no ProductState
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
