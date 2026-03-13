@@ -1,18 +1,56 @@
 import 'package:flutter/foundation.dart';
-import '../../domain/repositories/product repository.dart';
-import 'product state.dart';
+import '../../domain/repositories/product_repository.dart';
+import '../../domain/entities/product.dart';
+import 'product_state.dart';
 
-class ProductViewModel {
+class ProductViewModel extends ChangeNotifier {
   final ProductRepository repository;
-  final ValueNotifier<ProductState> state = ValueNotifier(const ProductState());
+
+  ProductState _state = const ProductState();
+  ProductState get state => _state;
+
+  final Set<int> _favoriteIds = {};
+
   ProductViewModel(this.repository);
+
   Future<void> loadProducts() async {
-    state.value = state.value.copyWith(isLoading: true);
+    _state = _state.copyWith(isLoading: true);
+    notifyListeners();
+
     try {
       final products = await repository.getProducts();
-      state.value = state.value.copyWith(isLoading: false, products: products);
+      _state = _state.copyWith(isLoading: false, products: products);
+      notifyListeners();
     } catch (e) {
-      state.value = state.value.copyWith(isLoading: false, error: e.toString());
+      _state = _state.copyWith(isLoading: false, error: e.toString());
+      notifyListeners();
     }
   }
+
+  bool isFavorite(int productId) {
+    return _favoriteIds.contains(productId);
+  }
+
+  void toggleFavorite(int productId) {
+    if (_favoriteIds.contains(productId)) {
+      _favoriteIds.remove(productId);
+    } else {
+      _favoriteIds.add(productId);
+    }
+    notifyListeners();
+  }
+
+  void toggleFilter() {
+    _state = _state.copyWith(showOnlyFavorites: !_state.showOnlyFavorites);
+    notifyListeners();
+  }
+
+  List<Product> get visibleProducts {
+    if (_state.showOnlyFavorites) {
+      return _state.products.where((p) => _favoriteIds.contains(p.id)).toList();
+    }
+    return _state.products;
+  }
+
+  int get favoriteCount => _favoriteIds.length;
 }

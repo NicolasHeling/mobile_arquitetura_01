@@ -1,5 +1,5 @@
 import '../../domain/entities/product.dart';
-import '../../domain/repositories/product%20repository.dart';
+import '../../domain/repositories/product_repository.dart';
 import '../datasources/product_remote_datasource.dart';
 import '../datasources/productcachedatasource.dart';
 import '../../core/errors/failure.dart';
@@ -7,7 +7,9 @@ import '../../core/errors/failure.dart';
 class ProductRepositoryImpl implements ProductRepository {
   final ProductRemoteDatasource remote;
   final ProductCacheDatasource cache;
+
   ProductRepositoryImpl(this.remote, this.cache);
+
   @override
   Future<List<Product>> getProducts() async {
     try {
@@ -37,7 +39,8 @@ class ProductRepositoryImpl implements ProductRepository {
             )
             .toList();
       }
-      throw Failure("N o foi poss vel carregar os produtos");
+      // AQUI: Os acentos foram corrigidos para evitar erros de leitura
+      throw Failure("Não foi possível carregar os produtos");
     }
   }
 }
