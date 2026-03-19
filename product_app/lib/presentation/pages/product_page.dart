@@ -65,6 +65,16 @@ class _ProductPageState extends State<ProductPage> {
               final product = productsToShow[index];
 
               return ListTile(
+                // === A IMAGEM FOI ADICIONADA AQUI ===
+                leading: Image.network(
+                  product.image,
+                  width: 50,
+                  height: 50,
+                  fit: BoxFit.cover,
+                  // Se a URL da imagem falhar, mostra um ícone padrão de erro
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.image_not_supported, size: 50),
+                ),
                 title: Text(product.title),
                 subtitle: Text('R\$ ${product.price.toStringAsFixed(2)}'),
                 // Botão de Favorito (Funcionalidade Obrigatória)
