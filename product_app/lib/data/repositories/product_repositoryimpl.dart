@@ -22,6 +22,7 @@ class ProductRepositoryImpl implements ProductRepository {
               title: m.title,
               price: m.price,
               image: m.image,
+              description: m.description, // <-- CAMPO ADICIONADO AQUI
             ),
           )
           .toList();
@@ -35,6 +36,7 @@ class ProductRepositoryImpl implements ProductRepository {
                 title: m.title,
                 price: m.price,
                 image: m.image,
+                description: m.description, // <-- CAMPO ADICIONADO AQUI
               ),
             )
             .toList();

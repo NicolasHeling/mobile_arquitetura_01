@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/productviewmodel.dart';
+import 'product_details_page.dart'; // Importação da nova tela de detalhes
 
 class ProductPage extends StatefulWidget {
   const ProductPage({super.key});
@@ -51,8 +52,6 @@ class _ProductPageState extends State<ProductPage> {
             return Center(child: Text('Erro: ${state.error}'));
           }
 
-          // Mudança crucial: Usar viewModel.visibleProducts em vez de state.products
-          // para que o filtro e a lista funcionem juntos
           final productsToShow = viewModel.visibleProducts;
 
           if (productsToShow.isEmpty) {
@@ -65,22 +64,21 @@ class _ProductPageState extends State<ProductPage> {
               final product = productsToShow[index];
 
               return ListTile(
-                // === A IMAGEM FOI ADICIONADA AQUI ===
+                // Imagem do produto
                 leading: Image.network(
                   product.image,
                   width: 50,
                   height: 50,
                   fit: BoxFit.cover,
-                  // Se a URL da imagem falhar, mostra um ícone padrão de erro
                   errorBuilder: (context, error, stackTrace) =>
                       const Icon(Icons.image_not_supported, size: 50),
                 ),
                 title: Text(product.title),
                 subtitle: Text('R\$ ${product.price.toStringAsFixed(2)}'),
-                // Botão de Favorito (Funcionalidade Obrigatória)
+
+                // Botão de Favorito
                 trailing: IconButton(
                   icon: Icon(
-                    // Verifica se o ID está no Set de favoritos
                     viewModel.isFavorite(product.id)
                         ? Icons.star
                         : Icons.star_border,
@@ -89,10 +87,20 @@ class _ProductPageState extends State<ProductPage> {
                         : null,
                   ),
                   onPressed: () {
-                    // Alterna o estado do favorito ao clicar
                     viewModel.toggleFavorite(product.id);
                   },
                 ),
+
+                // Navegação para a Tela de Detalhes
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ProductDetailsPage(product: product),
+                    ),
+                  );
+                },
               );
             },
           );

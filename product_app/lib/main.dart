@@ -1,12 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // <-- Adicione o import do Provider
+import 'package:provider/provider.dart';
 
+// Importações da camada de dados
 import 'data/datasources/product_remote_datasource.dart';
-import 'data/repositories/product_repositoryimpl.dart';
-import 'presentation/pages/product_page.dart';
-import 'presentation/viewmodels/productviewmodel.dart';
 import 'data/datasources/productcachedatasource.dart';
+import 'data/repositories/product_repositoryimpl.dart';
+
+// Importações da camada de apresentação
+import 'presentation/viewmodels/productviewmodel.dart';
+import 'presentation/pages/home_page.dart'; // Importação da nova Tela Inicial
 
 void main() {
   // Configuração das dependências
@@ -17,7 +20,6 @@ void main() {
 
   runApp(
     // Envolvemos a raiz do app com o Provider
-    // Assumindo que o ProductViewModel estenda ChangeNotifier
     ChangeNotifierProvider(
       create: (context) => ProductViewModel(repository),
       child: const MyApp(),
@@ -26,7 +28,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  // O construtor fica limpo, sem necessidade de exigir o viewModel
   const MyApp({super.key});
 
   @override
@@ -34,8 +35,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Product App',
       debugShowCheckedModeBanner: false,
-      home:
-          const ProductPage(), // Retiramos a passagem por parâmetro aqui também
+      theme: ThemeData(primarySwatch: Colors.blue),
+      // O fluxo agora começa pela HomePage
+      home: const HomePage(),
     );
   }
 }
