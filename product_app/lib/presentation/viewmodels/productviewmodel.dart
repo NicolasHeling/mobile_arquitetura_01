@@ -1,56 +1,49 @@
-import 'package:flutter/foundation.dart';
-import '../../domain/repositories/product_repository.dart';
-import '../../domain/entities/product.dart';
-import 'product_state.dart';
+import 'package:flutter/material.dart';
+import '../../data/models/product_model.dart';
+import '../../data/repositories/product_repositoryimpl.dart';
 
 class ProductViewModel extends ChangeNotifier {
-  final ProductRepository repository;
+  final ProductRepositoryImpl repository;
 
-  ProductState _state = const ProductState();
-  ProductState get state => _state;
+  List<Product> products = [];
+  bool isLoading = false;
 
-  final Set<int> _favoriteIds = {};
-
-  ProductViewModel(this.repository);
+  ProductViewModel(this.repository) {
+    loadProducts();
+  }
 
   Future<void> loadProducts() async {
-    _state = _state.copyWith(isLoading: true);
+    isLoading = true;
     notifyListeners();
 
     try {
-      final products = await repository.getProducts();
-      _state = _state.copyWith(isLoading: false, products: products);
-      notifyListeners();
+      products = await repository.getProducts();
     } catch (e) {
-      _state = _state.copyWith(isLoading: false, error: e.toString());
+      debugPrint("Erro ao carregar produtos: $e");
+    }
+
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> addProduct(Product product) async {
+    final newProduct = await repository.addProduct(product);
+    products.add(newProduct);
+    notifyListeners();
+  }
+
+  Future<void> updateProduct(Product product) async {
+    final updatedProduct = await repository.updateProduct(product);
+    final index = products.indexWhere((p) => p.id == updatedProduct.id);
+    if (index != -1) {
+      products[index] = updatedProduct;
       notifyListeners();
     }
   }
 
-  bool isFavorite(int productId) {
-    return _favoriteIds.contains(productId);
-  }
-
-  void toggleFavorite(int productId) {
-    if (_favoriteIds.contains(productId)) {
-      _favoriteIds.remove(productId);
-    } else {
-      _favoriteIds.add(productId);
-    }
+  Future<void> deleteProduct(int id) async {
+    await repository.deleteProduct(id);
+    products.removeWhere((p) => p.id == id);
     notifyListeners();
   }
-
-  void toggleFilter() {
-    _state = _state.copyWith(showOnlyFavorites: !_state.showOnlyFavorites);
-    notifyListeners();
-  }
-
-  List<Product> get visibleProducts {
-    if (_state.showOnlyFavorites) {
-      return _state.products.where((p) => _favoriteIds.contains(p.id)).toList();
-    }
-    return _state.products;
-  }
-
-  int get favoriteCount => _favoriteIds.length;
 }

@@ -1,12 +1,13 @@
 import '../models/product_model.dart';
 
 class ProductCacheDatasource {
-  List<ProductModel>? _cache;
-  void save(List<ProductModel> products) {
+  List<Product>? _cache;
+
+  void save(List<Product> products) {
     _cache = products;
   }
 
-  List<ProductModel>? get() {
+  List<Product>? get() {
     return _cache;
   }
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/product.dart';
+import 'package:provider/provider.dart';
+import '../../data/models/product_model.dart';
+import '../viewmodels/productviewmodel.dart';
+import 'product_form_page.dart';
 
 class ProductDetailsPage extends StatelessWidget {
   final Product product;
@@ -10,65 +13,71 @@ class ProductDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(product.title),
+        title: const Text('Detalhes do Produto'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.home),
-            tooltip: 'Ir para o Início',
+            icon: const Icon(Icons.edit),
             onPressed: () {
-              Navigator.popUntil(context, (route) => route.isFirst);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductFormPage(product: product),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Confirmar exclusão'),
+                  content: const Text('Deseja realmente remover este produto?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancelar'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Excluir'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true) {
+                await context.read<ProductViewModel>().deleteProduct(
+                  product.id!,
+                );
+                if (context.mounted) Navigator.pop(context);
+              }
             },
           ),
         ],
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Image.network(
-                  product.image,
-                  height: 250,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) =>
-                      const Icon(Icons.image_not_supported, size: 150),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                product.title,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'R\$ ${product.price.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // === A DESCRIÇÃO VOLTOU AQUI ===
-              const Text(
-                'Descrição:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                product.description, // <-- Exibindo a descrição da entidade
-                style: const TextStyle(fontSize: 16, height: 1.5),
-              ),
-
-              // ===============================
-            ],
-          ),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(child: Image.network(product.image, height: 200)),
+            const SizedBox(height: 16),
+            Text(
+              product.title,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'R\$ ${product.price.toStringAsFixed(2)}',
+              style: const TextStyle(fontSize: 20, color: Colors.green),
+            ),
+            const SizedBox(height: 8),
+            Chip(label: Text(product.category)),
+            const SizedBox(height: 16),
+            Text(product.description, style: const TextStyle(fontSize: 16)),
+          ],
         ),
       ),
     );
