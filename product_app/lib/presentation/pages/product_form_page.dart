@@ -4,7 +4,7 @@ import '../../data/models/product_model.dart';
 import '../viewmodels/productviewmodel.dart';
 
 class ProductFormPage extends StatefulWidget {
-  final Product? product; // Se for nulo, é cadastro. Se não, é edição.
+  final Product? product;
 
   const ProductFormPage({super.key, this.product});
 
@@ -17,7 +17,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
   late TextEditingController _titleController;
   late TextEditingController _priceController;
   late TextEditingController _descriptionController;
-  late TextEditingController _imageController;
+  late TextEditingController _thumbnailController; // Corrigido
   late TextEditingController _categoryController;
 
   @override
@@ -30,7 +30,10 @@ class _ProductFormPageState extends State<ProductFormPage> {
     _descriptionController = TextEditingController(
       text: widget.product?.description ?? '',
     );
-    _imageController = TextEditingController(text: widget.product?.image ?? '');
+    // Corrigido
+    _thumbnailController = TextEditingController(
+      text: widget.product?.thumbnail ?? '',
+    );
     _categoryController = TextEditingController(
       text: widget.product?.category ?? '',
     );
@@ -41,7 +44,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     _titleController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
-    _imageController.dispose();
+    _thumbnailController.dispose(); // Corrigido
     _categoryController.dispose();
     super.dispose();
   }
@@ -49,12 +52,16 @@ class _ProductFormPageState extends State<ProductFormPage> {
   void _saveProduct() async {
     if (_formKey.currentState!.validate()) {
       final newProduct = Product(
-        id: widget.product?.id,
+        id:
+            widget.product?.id ??
+            0, // Adicionado fallback para 0 caso seja nulo (novo)
         title: _titleController.text,
         price: double.parse(_priceController.text.replaceAll(',', '.')),
         description: _descriptionController.text,
-        image: _imageController.text,
+        thumbnail: _thumbnailController.text, // Corrigido
         category: _categoryController.text,
+        rating: widget.product?.rating ?? 0.0, // Adicionado campo obrigatório
+        stock: widget.product?.stock ?? 0, // Adicionado campo obrigatório
       );
 
       final viewModel = context.read<ProductViewModel>();
@@ -64,11 +71,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
       } else {
         await viewModel.updateProduct(newProduct);
         if (mounted) {
-          Navigator.pop(context); // Fecha a tela de detalhes se for edição
+          Navigator.pop(context);
         }
       }
 
-      if (mounted) Navigator.pop(context); // Fecha o formulário
+      if (mounted) Navigator.pop(context);
     }
   }
 
@@ -95,13 +102,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
               TextFormField(
                 controller: _priceController,
                 decoration: const InputDecoration(labelText: 'Preço'),
-                // Força o teclado a mostrar a opção de decimais (vírgula/ponto)
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Informe o preço';
-                  // Substitui a vírgula por ponto na hora de validar
                   final valorFormatado = value.replaceAll(',', '.');
                   if (double.tryParse(valorFormatado) == null) {
                     return 'Valor numérico inválido';
@@ -124,7 +129,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     : null,
               ),
               TextFormField(
-                controller: _imageController,
+                controller: _thumbnailController, // Corrigido
                 decoration: const InputDecoration(labelText: 'URL da Imagem'),
                 validator: (value) =>
                     value == null || value.isEmpty ? 'Informe a URL' : null,

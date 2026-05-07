@@ -20,9 +20,10 @@ class ProductPage extends StatelessWidget {
               itemBuilder: (context, index) {
                 final product = viewModel.products[index];
                 return ListTile(
-                  leading: product.image.isNotEmpty
+                  // Corrigido para thumbnail
+                  leading: product.thumbnail.isNotEmpty
                       ? Image.network(
-                          product.image,
+                          product.thumbnail,
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,

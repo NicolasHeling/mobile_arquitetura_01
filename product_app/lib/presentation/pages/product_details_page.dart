@@ -48,8 +48,9 @@ class ProductDetailsPage extends StatelessWidget {
               );
 
               if (confirm == true) {
+                // Removemos o "!" do product.id assumindo que ele agora é obrigatório (required) no modelo
                 await context.read<ProductViewModel>().deleteProduct(
-                  product.id!,
+                  product.id,
                 );
                 if (context.mounted) Navigator.pop(context);
               }
@@ -62,7 +63,12 @@ class ProductDetailsPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(child: Image.network(product.image, height: 200)),
+            // Mudança de product.image para product.thumbnail
+            Center(
+              child: product.thumbnail.isNotEmpty
+                  ? Image.network(product.thumbnail, height: 200)
+                  : const Icon(Icons.image, size: 100, color: Colors.grey),
+            ),
             const SizedBox(height: 16),
             Text(
               product.title,
@@ -74,7 +80,24 @@ class ProductDetailsPage extends StatelessWidget {
               style: const TextStyle(fontSize: 20, color: Colors.green),
             ),
             const SizedBox(height: 8),
-            Chip(label: Text(product.category)),
+            // Adição de mais detalhes contextuais (Categoria, Avaliação, Estoque)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Chip(label: Text(product.category)),
+                Chip(
+                  label: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star, size: 16, color: Colors.amber),
+                      Text(' ${product.rating}'),
+                    ],
+                  ),
+                ),
+                Chip(label: Text('Estoque: ${product.stock}')),
+              ],
+            ),
             const SizedBox(height: 16),
             Text(product.description, style: const TextStyle(fontSize: 16)),
           ],
