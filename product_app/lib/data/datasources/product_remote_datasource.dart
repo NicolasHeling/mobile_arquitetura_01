@@ -3,16 +3,24 @@ import '../models/product_model.dart';
 
 class ProductRemoteDatasource {
   final Dio dio;
-  final String baseUrl = 'https://dummyjson.com/products'; // Nova URL
+  final String baseUrl = 'https://dummyjson.com/products';
 
   ProductRemoteDatasource(this.dio);
 
   Future<List<Product>> fetchProducts() async {
     final response = await dio.get(baseUrl);
-    // Acessando a chave 'products' da resposta da DummyJSON
     final List<dynamic> productsJson = response.data['products'];
-
     return productsJson.map((item) => Product.fromJson(item)).toList();
+  }
+
+  // NOVO MÉTODO: Busca detalhes via /products/{id}
+  Future<Product> fetchProductById(int id) async {
+    final response = await dio.get('$baseUrl/$id');
+    if (response.statusCode == 200) {
+      return Product.fromJson(response.data);
+    } else {
+      throw Exception('Erro ao carregar detalhes do produto');
+    }
   }
 
   Future<Product> addProduct(Product product) async {

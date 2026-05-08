@@ -1,107 +1,80 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import '../../data/datasources/product_remote_datasource.dart';
 import '../../data/models/product_model.dart';
-import '../viewmodels/productviewmodel.dart';
-import 'product_form_page.dart';
 
-class ProductDetailsPage extends StatelessWidget {
-  final Product product;
+class ProductDetailsPage extends StatefulWidget {
+  // Agora recebe apenas o ID, conforme a exigência do professor
+  final int productId;
 
-  const ProductDetailsPage({super.key, required this.product});
+  const ProductDetailsPage({super.key, required this.productId});
+
+  @override
+  State<ProductDetailsPage> createState() => _ProductDetailsPageState();
+}
+
+class _ProductDetailsPageState extends State<ProductDetailsPage> {
+  late Future<Product> _productFuture;
+  final ProductRemoteDatasource _datasource = ProductRemoteDatasource(Dio());
+
+  @override
+  void initState() {
+    super.initState();
+    // Faz uma nova chamada à API para buscar os detalhes pelo ID
+    _productFuture = _datasource.fetchProductById(widget.productId);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detalhes do Produto'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ProductFormPage(product: product),
-                ),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Confirmar exclusão'),
-                  content: const Text('Deseja realmente remover este produto?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancelar'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Excluir'),
-                    ),
-                  ],
-                ),
-              );
+      appBar: AppBar(title: const Text('Detalhes do Produto')),
+      body: FutureBuilder<Product>(
+        future: _productFuture,
+        builder: (context, snapshot) {
+          // Mostra o loading enquanto espera a resposta da API
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Erro: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return const Center(child: Text('Produto não encontrado'));
+          }
 
-              if (confirm == true) {
-                // Removemos o "!" do product.id assumindo que ele agora é obrigatório (required) no modelo
-                await context.read<ProductViewModel>().deleteProduct(
-                  product.id,
-                );
-                if (context.mounted) Navigator.pop(context);
-              }
-            },
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Mudança de product.image para product.thumbnail
-            Center(
-              child: product.thumbnail.isNotEmpty
-                  ? Image.network(product.thumbnail, height: 200)
-                  : const Icon(Icons.image, size: 100, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              product.title,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'R\$ ${product.price.toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 20, color: Colors.green),
-            ),
-            const SizedBox(height: 8),
-            // Adição de mais detalhes contextuais (Categoria, Avaliação, Estoque)
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+          final product = snapshot.data!;
+          // Renderiza a tela após carregar com sucesso
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Chip(label: Text(product.category)),
-                Chip(
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.star, size: 16, color: Colors.amber),
-                      Text(' ${product.rating}'),
-                    ],
+                Center(child: Image.network(product.thumbnail, height: 200)),
+                const SizedBox(height: 20),
+                Text(
+                  product.title,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                Chip(label: Text('Estoque: ${product.stock}')),
+                const SizedBox(height: 10),
+                Text(
+                  'Preço: R\$ ${product.price.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 20, color: Colors.green),
+                ),
+                const SizedBox(height: 10),
+                Text('Categoria: ${product.category}'),
+                const SizedBox(height: 10),
+                Text('Avaliação: ${product.rating} ⭐'),
+                const SizedBox(height: 20),
+                const Text(
+                  'Descrição:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(product.description),
               ],
             ),
-            const SizedBox(height: 16),
-            Text(product.description, style: const TextStyle(fontSize: 16)),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
