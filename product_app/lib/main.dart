@@ -19,7 +19,8 @@ void main() {
 
   runApp(
     ChangeNotifierProvider(
-      create: (context) => ProductViewModel(repository),
+      // CORREÇÃO AQUI: Passando o parâmetro de forma nomeada
+      create: (context) => ProductViewModel(repository: repository),
       child: const MyApp(),
     ),
   );

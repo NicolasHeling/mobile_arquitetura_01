@@ -14,9 +14,20 @@ class ProductPage extends StatelessWidget {
     final viewModel = context.watch<ProductViewModel>();
     final user = SessionController.instance.user;
 
+    // Bloqueio rígido de acesso: se não houver usuário logado, redireciona para o login
+    if (user == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Olá, ${user?.firstName ?? 'Usuário'}'),
+        title: Text('Olá, ${user.firstName}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
