@@ -12,7 +12,6 @@ class ProductPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<ProductViewModel>();
-    // Recupera os dados do utilizador logado na sessão
     final user = SessionController.instance.user;
 
     return Scaffold(
@@ -23,7 +22,6 @@ class ProductPage extends StatelessWidget {
             icon: const Icon(Icons.logout),
             tooltip: 'Sair',
             onPressed: () {
-              // Executa o logout e volta para a tela de login
               SessionController.instance.logout();
               Navigator.pushReplacement(
                 context,
@@ -35,8 +33,26 @@ class ProductPage extends StatelessWidget {
       ),
       body: viewModel.isLoading
           ? const Center(child: CircularProgressIndicator())
+          : viewModel.errorMessage != null
+          ? Center(
+              // Cumpre o tratamento de erro visual caso a API falhe
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    viewModel.errorMessage!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: viewModel.loadProducts,
+                    child: const Text('Tentar Novamente'),
+                  ),
+                ],
+              ),
+            )
           : RefreshIndicator(
-              // CORREÇÃO AQUI: mudou de onPressed para onRefresh e adicionou async
               onRefresh: () async {
                 await viewModel.loadProducts();
               },
@@ -44,6 +60,9 @@ class ProductPage extends StatelessWidget {
                 itemCount: viewModel.products.length,
                 itemBuilder: (context, index) {
                   final product = viewModel.products[index];
+                  // Verifica no ViewModel se este ID é favorito
+                  final isFavorite = viewModel.isFavorite(product.id);
+
                   return ListTile(
                     leading: product.thumbnail.isNotEmpty
                         ? Image.network(
@@ -55,6 +74,16 @@ class ProductPage extends StatelessWidget {
                         : const Icon(Icons.image),
                     title: Text(product.title),
                     subtitle: Text('R\$ ${product.price.toStringAsFixed(2)}'),
+                    // Cumpre a interface de Marcar/Remover favoritos
+                    trailing: IconButton(
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : null,
+                      ),
+                      onPressed: () {
+                        viewModel.toggleFavorite(product.id);
+                      },
+                    ),
                     onTap: () {
                       Navigator.push(
                         context,
